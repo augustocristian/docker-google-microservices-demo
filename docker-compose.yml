@@ -1,0 +1,343 @@
+version: '3.9'
+
+# Docker Compose for Google Microservices Demo
+# Allows multiple instances to run in parallel using INSTANCE_NAME variable
+# Usage: INSTANCE_NAME=dev docker-compose up
+#        INSTANCE_NAME=test docker-compose up
+#        Multiple instances can run simultaneously on different networks
+
+services:
+  # ============================================================================
+  # REDIS - Cache for CartService
+  # ============================================================================
+  redis-cart:
+    container_name: redis-cart-${INSTANCE_NAME:-default}
+    image: redis:7-alpine
+    init: true
+    volumes:
+      - redis-data-${INSTANCE_NAME:-default}:/data
+    ports:
+      - "6379"
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ============================================================================
+  # FRONTEND - HTTP Web Interface (Entry Point)
+  # ============================================================================
+  frontend:
+    container_name: frontend-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    init: true
+    depends_on:
+      productcatalogservice:
+        condition: service_started
+      cartservice:
+        condition: service_started
+      currencyservice:
+        condition: service_started
+      shippingservice:
+        condition: service_started
+      checkoutservice:
+        condition: service_started
+      recommendationservice:
+        condition: service_started
+      adservice:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${INSTANCE_NAME:-default}:3550
+      - CURRENCY_SERVICE_ADDR=currencyservice-${INSTANCE_NAME:-default}:7000
+      - CART_SERVICE_ADDR=cartservice-${INSTANCE_NAME:-default}:7070
+      - RECOMMENDATION_SERVICE_ADDR=recommendationservice-${INSTANCE_NAME:-default}:8080
+      - SHIPPING_SERVICE_ADDR=shippingservice-${INSTANCE_NAME:-default}:50051
+      - CHECKOUT_SERVICE_ADDR=checkoutservice-${INSTANCE_NAME:-default}:5050
+      - AD_SERVICE_ADDR=adservice-${INSTANCE_NAME:-default}:9555
+      - ENABLE_PROFILER=0
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # CARTSERVICE - Shopping Cart Management (gRPC, uses Redis)
+  # ============================================================================
+  cartservice:
+    container_name: cartservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/cartservice
+      dockerfile: Dockerfile
+    init: true
+    depends_on:
+      redis-cart:
+        condition: service_healthy
+    expose:
+      - "7070"
+    environment:
+      - REDIS_ADDR=redis-cart-${INSTANCE_NAME:-default}:6379
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # PRODUCTCATALOGSERVICE - Product Catalog (gRPC, static data)
+  # ============================================================================
+  productcatalogservice:
+    container_name: productcatalogservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/productcatalogservice
+      dockerfile: Dockerfile
+    init: true
+    expose:
+      - "3550"
+    environment:
+      - PORT=3550
+      - DISABLE_PROFILER=1
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # CURRENCYSERVICE - Currency Conversion (gRPC, external ECB API calls)
+  # ============================================================================
+  currencyservice:
+    container_name: currencyservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/currencyservice
+      dockerfile: Dockerfile
+    init: true
+    expose:
+      - "7000"
+    environment:
+      - PORT=7000
+      - DISABLE_PROFILER=1
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # PAYMENTSERVICE - Payment Processing (gRPC, mock implementation)
+  # ============================================================================
+  paymentservice:
+    container_name: paymentservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/paymentservice
+      dockerfile: Dockerfile
+    init: true
+    expose:
+      - "50051"
+    environment:
+      - PORT=50051
+      - DISABLE_PROFILER=1
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # SHIPPINGSERVICE - Shipping Quotes & Fulfillment (gRPC, mock)
+  # ============================================================================
+  shippingservice:
+    container_name: shippingservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/shippingservice
+      dockerfile: Dockerfile
+    init: true
+    expose:
+      - "50051"
+    environment:
+      - PORT=50051
+      - DISABLE_PROFILER=1
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # EMAILSERVICE - Email Notifications (gRPC, mock)
+  # ============================================================================
+  emailservice:
+    container_name: emailservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/emailservice
+      dockerfile: Dockerfile
+    init: true
+    expose:
+      - "8080"
+    environment:
+      - PORT=8080
+      - DISABLE_PROFILER=1
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # CHECKOUTSERVICE - Checkout Orchestration (gRPC)
+  # ============================================================================
+  checkoutservice:
+    container_name: checkoutservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/checkoutservice
+      dockerfile: Dockerfile
+    init: true
+    depends_on:
+      - cartservice
+      - productcatalogservice
+      - currencyservice
+      - shippingservice
+      - paymentservice
+      - emailservice
+    expose:
+      - "5050"
+    environment:
+      - PORT=5050
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${INSTANCE_NAME:-default}:3550
+      - SHIPPING_SERVICE_ADDR=shippingservice-${INSTANCE_NAME:-default}:50051
+      - PAYMENT_SERVICE_ADDR=paymentservice-${INSTANCE_NAME:-default}:50051
+      - EMAIL_SERVICE_ADDR=emailservice-${INSTANCE_NAME:-default}:8080
+      - CURRENCY_SERVICE_ADDR=currencyservice-${INSTANCE_NAME:-default}:7000
+      - CART_SERVICE_ADDR=cartservice-${INSTANCE_NAME:-default}:7070
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # RECOMMENDATIONSERVICE - Product Recommendations (gRPC, Python)
+  # ============================================================================
+  recommendationservice:
+    container_name: recommendationservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/recommendationservice
+      dockerfile: Dockerfile
+    init: true
+    depends_on:
+      - productcatalogservice
+    expose:
+      - "8080"
+    environment:
+      - PORT=8080
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${INSTANCE_NAME:-default}:3550
+      - DISABLE_PROFILER=1
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # ADSERVICE - Advertisement Service (gRPC, Java)
+  # ============================================================================
+  adservice:
+    container_name: adservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/adservice
+      dockerfile: Dockerfile
+    init: true
+    expose:
+      - "9555"
+    environment:
+      - PORT=9555
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # LOADGENERATOR - Traffic Simulation (Optional)
+  # ============================================================================
+  loadgenerator:
+    container_name: loadgenerator-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/loadgenerator
+      dockerfile: Dockerfile
+    init: true
+    depends_on:
+      - frontend
+    environment:
+      - FRONTEND_ADDR=frontend-${INSTANCE_NAME:-default}:8080
+      - USERS=10
+      - RATE=1
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    profiles:
+      - load-testing
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ============================================================================
+  # SHOPPINGASSISTANTSERVICE - AI Shopping Assistant (Optional)
+  # Requires GCP setup: AlloyDB, Secret Manager, Generative AI API
+  # ============================================================================
+  shoppingassistantservice:
+    container_name: shoppingassistantservice-${INSTANCE_NAME:-default}
+    build:
+      context: ./src/shoppingassistantservice
+      dockerfile: Dockerfile
+    init: true
+    expose:
+      - "80"
+    environment:
+      - PORT=80
+      - PROJECT_ID=${GCP_PROJECT_ID:-}
+      - REGION=${GCP_REGION:-us-central1}
+      - ALLOYDB_CLUSTER_NAME=${ALLOYDB_CLUSTER_NAME:-}
+      - ALLOYDB_INSTANCE_NAME=${ALLOYDB_INSTANCE_NAME:-}
+      - ALLOYDB_DATABASE_NAME=${ALLOYDB_DATABASE_NAME:-}
+      - ALLOYDB_TABLE_NAME=${ALLOYDB_TABLE_NAME:-}
+      - ALLOYDB_SECRET_NAME=${ALLOYDB_SECRET_NAME:-}
+      - GOOGLE_APPLICATION_CREDENTIALS=/var/secrets/google/key.json
+    networks:
+      - microservices-${INSTANCE_NAME:-default}
+    profiles:
+      - gcp
+    volumes:
+      - ${GCP_KEY_PATH:-./gcp-key.json}:/var/secrets/google/key.json:ro
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+networks:
+  microservices-${INSTANCE_NAME:-default}:
+    driver: bridge
+
+volumes:
+  redis-data-${INSTANCE_NAME:-default}:

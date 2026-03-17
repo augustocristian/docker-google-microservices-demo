@@ -72,7 +72,7 @@ function Check-Port {
 
 function Build-Images {
     Write-Info "Building images for instance: $InstanceName"
-    $env:INSTANCE_NAME = $InstanceName
+    $env:TJOB_NAME = $InstanceName
     & docker-compose build
     Write-Success "Build complete"
 }
@@ -86,11 +86,11 @@ function Start-Instance {
     Check-Port $FrontendPort
     
     Write-Info "Pulling/building images..."
-    $env:INSTANCE_NAME = $InstanceName
+    $env:TJOB_NAME = $InstanceName
     & docker-compose build --pull 2>$null
     
     Write-Info "Starting containers..."
-    $env:INSTANCE_NAME = $InstanceName
+    $env:TJOB_NAME = $InstanceName
     $env:FRONTEND_PORT = $FrontendPort
     & docker-compose up -d
     
@@ -101,19 +101,19 @@ function Start-Instance {
 
 function Stop-Instance {
     Write-Info "Stopping instance: $InstanceName"
-    $env:INSTANCE_NAME = $InstanceName
+    $env:TJOB_NAME = $InstanceName
     & docker-compose down
     Write-Success "Instance stopped"
 }
 
 function Show-Logs {
-    $env:INSTANCE_NAME = $InstanceName
+    $env:TJOB_NAME = $InstanceName
     & docker-compose logs -f
 }
 
 function Show-PS {
     Write-Info "Containers for instance: $InstanceName"
-    $env:INSTANCE_NAME = $InstanceName
+    $env:TJOB_NAME = $InstanceName
     & docker-compose ps
 }
 
@@ -123,7 +123,7 @@ function Clean-Instance {
     $confirm = Read-Host "Are you sure? (y/N)"
     if ($confirm -eq 'y' -or $confirm -eq 'Y') {
         Write-Info "Cleaning instance: $InstanceName"
-        $env:INSTANCE_NAME = $InstanceName
+        $env:TJOB_NAME = $InstanceName
         & docker-compose down -v
         Write-Success "Instance cleaned"
     } else {
@@ -137,17 +137,17 @@ function Start-MultiInstance {
     Write-Info ""
     
     Write-Info "Instance 1: dev on port 8080"
-    $env:INSTANCE_NAME = 'dev'
+    $env:TJOB_NAME = 'dev'
     $env:FRONTEND_PORT = 8080
     & docker-compose up -d
     
     Write-Info "Instance 2: test on port 8081"
-    $env:INSTANCE_NAME = 'test'
+    $env:TJOB_NAME = 'test'
     $env:FRONTEND_PORT = 8081
     & docker-compose up -d
     
     Write-Info "Instance 3: staging on port 8082"
-    $env:INSTANCE_NAME = 'staging'
+    $env:TJOB_NAME = 'staging'
     $env:FRONTEND_PORT = 8082
     & docker-compose up -d
     

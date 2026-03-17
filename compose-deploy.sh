@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 # Default values
 ACTION="${1:-help}"
-INSTANCE_NAME="${2:-dev}"
+TJOB_NAME="${2:-dev}"
 FRONTEND_PORT="${3:-8080}"
 
 print_header() {
@@ -79,7 +79,7 @@ EXAMPLES:
   ./compose-deploy.sh clean staging
 
 ENVIRONMENT:
-  INSTANCE_NAME    Container/network prefix (default: dev)
+  TJOB_NAME    Container/network prefix (default: dev)
   FRONTEND_PORT    External port for frontend (default: 8080)
   DOCKER_COMPOSE   Override docker-compose command (default: docker-compose)
 
@@ -87,14 +87,14 @@ EOF
 }
 
 build_images() {
-    print_info "Building images for instance: $INSTANCE_NAME"
-    INSTANCE_NAME="$INSTANCE_NAME" docker-compose build
+    print_info "Building images for instance: $TJOB_NAME"
+    TJOB_NAME="$TJOB_NAME" docker-compose build
     print_success "Build complete"
 }
 
 start_instance() {
     print_header
-    print_info "Starting instance: $INSTANCE_NAME"
+    print_info "Starting instance: $TJOB_NAME"
     print_info "Frontend port: $FRONTEND_PORT"
     
     # Validate port is available
@@ -105,10 +105,10 @@ start_instance() {
     fi
     
     print_info "Pulling/building images..."
-    INSTANCE_NAME="$INSTANCE_NAME" docker-compose build --pull 2>/dev/null || true
+    TJOB_NAME="$TJOB_NAME" docker-compose build --pull 2>/dev/null || true
     
     print_info "Starting containers..."
-    INSTANCE_NAME="$INSTANCE_NAME" FRONTEND_PORT="$FRONTEND_PORT" docker-compose up -d
+    TJOB_NAME="$TJOB_NAME" FRONTEND_PORT="$FRONTEND_PORT" docker-compose up -d
     
     print_success "Instance started"
     
@@ -128,23 +128,23 @@ start_instance() {
 }
 
 stop_instance() {
-    print_info "Stopping instance: $INSTANCE_NAME"
-    INSTANCE_NAME="$INSTANCE_NAME" docker-compose down
+    print_info "Stopping instance: $TJOB_NAME"
+    TJOB_NAME="$TJOB_NAME" docker-compose down
     print_success "Instance stopped"
 }
 
 show_logs() {
     local service="${3:-}"
     if [ -z "$service" ]; then
-        INSTANCE_NAME="$INSTANCE_NAME" docker-compose logs -f
+        TJOB_NAME="$TJOB_NAME" docker-compose logs -f
     else
-        INSTANCE_NAME="$INSTANCE_NAME" docker-compose logs -f "$service"
+        TJOB_NAME="$TJOB_NAME" docker-compose logs -f "$service"
     fi
 }
 
 show_ps() {
-    print_info "Containers for instance: $INSTANCE_NAME"
-    INSTANCE_NAME="$INSTANCE_NAME" docker-compose ps
+    print_info "Containers for instance: $TJOB_NAME"
+    TJOB_NAME="$TJOB_NAME" docker-compose ps
 }
 
 clean_instance() {
@@ -153,8 +153,8 @@ clean_instance() {
     read -p "Are you sure? (y/N) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_info "Cleaning instance: $INSTANCE_NAME"
-        INSTANCE_NAME="$INSTANCE_NAME" docker-compose down -v
+        print_info "Cleaning instance: $TJOB_NAME"
+        TJOB_NAME="$TJOB_NAME" docker-compose down -v
         print_success "Instance cleaned"
     else
         print_info "Cancelled"
@@ -167,15 +167,15 @@ multi_instance_demo() {
     
     echo ""
     print_info "Instance 1: dev on port 8080"
-    INSTANCE_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
+    TJOB_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
     
     echo ""
     print_info "Instance 2: test on port 8081"
-    INSTANCE_NAME=test FRONTEND_PORT=8081 docker-compose up -d
+    TJOB_NAME=test FRONTEND_PORT=8081 docker-compose up -d
     
     echo ""
     print_info "Instance 3: staging on port 8082"
-    INSTANCE_NAME=staging FRONTEND_PORT=8082 docker-compose up -d
+    TJOB_NAME=staging FRONTEND_PORT=8082 docker-compose up -d
     
     echo ""
     print_success "All instances started"

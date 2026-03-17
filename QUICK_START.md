@@ -12,7 +12,7 @@ Unlike typical Docker Compose setups, this configuration:
 ✓ **Independent Networks** - Each instance has its own isolated network  
 ✓ **Unique Naming** - Container names include the instance name to avoid conflicts  
 ✓ **Config per Instance** - Different image repositories, ports, or environment variables per instance  
-✓ **Simple Scaling** - Add more instances by changing the `INSTANCE_NAME` variable  
+✓ **Simple Scaling** - Add more instances by changing the `TJOB_NAME` variable  
 
 ## Quick Commands
 
@@ -58,17 +58,17 @@ Unlike typical Docker Compose setups, this configuration:
 
 ```bash
 # Start single instance
-INSTANCE_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
-INSTANCE_NAME=test FRONTEND_PORT=8081 docker-compose up -d
+TJOB_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
+TJOB_NAME=test FRONTEND_PORT=8081 docker-compose up -d
 
 # View containers
 docker ps | grep microservices
 
 # View logs
-INSTANCE_NAME=dev docker-compose logs -f frontend
+TJOB_NAME=dev docker-compose logs -f frontend
 
 # Stop instance
-INSTANCE_NAME=dev docker-compose down
+TJOB_NAME=dev docker-compose down
 ```
 
 ## Use Cases
@@ -107,24 +107,24 @@ INSTANCE_NAME=dev docker-compose down
 ```bash
 # Each CI job gets its own instance
 # Job 1 - Unit Tests
-INSTANCE_NAME=ci-unit-$BUILD_ID FRONTEND_PORT=9001 docker-compose up -d
+TJOB_NAME=ci-unit-$BUILD_ID FRONTEND_PORT=9001 docker-compose up -d
 # ... run tests ...
-INSTANCE_NAME=ci-unit-$BUILD_ID docker-compose down -v
+TJOB_NAME=ci-unit-$BUILD_ID docker-compose down -v
 
 # Job 2 - Integration Tests
-INSTANCE_NAME=ci-integration-$BUILD_ID FRONTEND_PORT=9002 docker-compose up -d
+TJOB_NAME=ci-integration-$BUILD_ID FRONTEND_PORT=9002 docker-compose up -d
 # ... run tests ...
-INSTANCE_NAME=ci-integration-$BUILD_ID docker-compose down -v
+TJOB_NAME=ci-integration-$BUILD_ID docker-compose down -v
 ```
 
 ### 4. A/B Testing / Performance Comparison
 
 ```bash
 # Instance A: Original configuration
-INSTANCE_NAME=version-a FRONTEND_PORT=8080 docker-compose up -d
+TJOB_NAME=version-a FRONTEND_PORT=8080 docker-compose up -d
 
 # Instance B: Modified configuration (edit docker-compose.yml for service changes)
-INSTANCE_NAME=version-b FRONTEND_PORT=8081 docker-compose up -d
+TJOB_NAME=version-b FRONTEND_PORT=8081 docker-compose up -d
 
 # Compare:
 # http://localhost:8080 vs http://localhost:8081
@@ -134,7 +134,7 @@ INSTANCE_NAME=version-b FRONTEND_PORT=8081 docker-compose up -d
 
 ### Container Naming
 
-Each service container includes the `INSTANCE_NAME`:
+Each service container includes the `TJOB_NAME`:
 
 ```
 # Instance: dev
@@ -197,7 +197,7 @@ Clean up with:
 
 ```bash
 # Remove volume for dev instance
-INSTANCE_NAME=dev docker-compose down -v
+TJOB_NAME=dev docker-compose down -v
 
 # Or manually remove all demo volumes
 docker volume ls | grep redis-data
@@ -227,7 +227,7 @@ lsof -i :8080                  # Linux/Mac
 docker images | grep microservices
 
 # Build images (first time)
-$env:INSTANCE_NAME = 'dev'
+$env:TJOB_NAME = 'dev'
 docker-compose build
 ```
 
@@ -318,10 +318,10 @@ cartservice:
 
 ```bash
 # Using .env files
-echo "INSTANCE_NAME=dev" > .env.dev
+echo "TJOB_NAME=dev" > .env.dev
 echo "FRONTEND_PORT=8080" >> .env.dev
 
-echo "INSTANCE_NAME=test" > .env.test
+echo "TJOB_NAME=test" > .env.test
 echo "FRONTEND_PORT=8081" >> .env.test
 
 # Run with specific config
@@ -338,7 +338,7 @@ $env:ALLOYDB_CLUSTER_NAME = 'your-cluster'
 $env:GCP_KEY_PATH = 'C:\path\to\service-account-key.json'
 
 # Start with GCP profile
-$env:INSTANCE_NAME = 'dev'
+$env:TJOB_NAME = 'dev'
 docker-compose --profile gcp up -d
 ```
 

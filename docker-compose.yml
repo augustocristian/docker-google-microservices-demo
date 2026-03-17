@@ -1,9 +1,9 @@
 version: '3.9'
 
 # Docker Compose for Google Microservices Demo
-# Allows multiple instances to run in parallel using INSTANCE_NAME variable
-# Usage: INSTANCE_NAME=dev docker-compose up
-#        INSTANCE_NAME=test docker-compose up
+# Allows multiple instances to run in parallel using TJOB_NAME variable
+# Usage: TJOB_NAME=dev docker-compose up
+#        TJOB_NAME=test docker-compose up
 #        Multiple instances can run simultaneously on different networks
 
 services:
@@ -11,15 +11,15 @@ services:
   # REDIS - Cache for CartService
   # ============================================================================
   redis-cart:
-    container_name: redis-cart-${INSTANCE_NAME:-default}
+    container_name: redis-cart-${TJOB_NAME:-default}
     image: redis:7-alpine
     init: true
     volumes:
-      - redis-data-${INSTANCE_NAME:-default}:/data
+      - redis-data-${TJOB_NAME:-default}:/data
     ports:
       - "6379"
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -34,7 +34,7 @@ services:
   # FRONTEND - HTTP Web Interface (Entry Point)
   # ============================================================================
   frontend:
-    container_name: frontend-${INSTANCE_NAME:-default}
+    container_name: frontend-${TJOB_NAME:-default}
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
@@ -58,16 +58,16 @@ services:
       - "${FRONTEND_PORT:-8080}:8080"
     environment:
       - PORT=8080
-      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${INSTANCE_NAME:-default}:3550
-      - CURRENCY_SERVICE_ADDR=currencyservice-${INSTANCE_NAME:-default}:7000
-      - CART_SERVICE_ADDR=cartservice-${INSTANCE_NAME:-default}:7070
-      - RECOMMENDATION_SERVICE_ADDR=recommendationservice-${INSTANCE_NAME:-default}:8080
-      - SHIPPING_SERVICE_ADDR=shippingservice-${INSTANCE_NAME:-default}:50051
-      - CHECKOUT_SERVICE_ADDR=checkoutservice-${INSTANCE_NAME:-default}:5050
-      - AD_SERVICE_ADDR=adservice-${INSTANCE_NAME:-default}:9555
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${TJOB_NAME:-default}:3550
+      - CURRENCY_SERVICE_ADDR=currencyservice-${TJOB_NAME:-default}:7000
+      - CART_SERVICE_ADDR=cartservice-${TJOB_NAME:-default}:7070
+      - RECOMMENDATION_SERVICE_ADDR=recommendationservice-${TJOB_NAME:-default}:8080
+      - SHIPPING_SERVICE_ADDR=shippingservice-${TJOB_NAME:-default}:50051
+      - CHECKOUT_SERVICE_ADDR=checkoutservice-${TJOB_NAME:-default}:5050
+      - AD_SERVICE_ADDR=adservice-${TJOB_NAME:-default}:9555
       - ENABLE_PROFILER=0
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -77,7 +77,7 @@ services:
   # CARTSERVICE - Shopping Cart Management (gRPC, uses Redis)
   # ============================================================================
   cartservice:
-    container_name: cartservice-${INSTANCE_NAME:-default}
+    container_name: cartservice-${TJOB_NAME:-default}
     build:
       context: ./src/cartservice
       dockerfile: Dockerfile
@@ -88,9 +88,9 @@ services:
     expose:
       - "7070"
     environment:
-      - REDIS_ADDR=redis-cart-${INSTANCE_NAME:-default}:6379
+      - REDIS_ADDR=redis-cart-${TJOB_NAME:-default}:6379
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -100,7 +100,7 @@ services:
   # PRODUCTCATALOGSERVICE - Product Catalog (gRPC, static data)
   # ============================================================================
   productcatalogservice:
-    container_name: productcatalogservice-${INSTANCE_NAME:-default}
+    container_name: productcatalogservice-${TJOB_NAME:-default}
     build:
       context: ./src/productcatalogservice
       dockerfile: Dockerfile
@@ -111,7 +111,7 @@ services:
       - PORT=3550
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -121,7 +121,7 @@ services:
   # CURRENCYSERVICE - Currency Conversion (gRPC, external ECB API calls)
   # ============================================================================
   currencyservice:
-    container_name: currencyservice-${INSTANCE_NAME:-default}
+    container_name: currencyservice-${TJOB_NAME:-default}
     build:
       context: ./src/currencyservice
       dockerfile: Dockerfile
@@ -132,7 +132,7 @@ services:
       - PORT=7000
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -142,7 +142,7 @@ services:
   # PAYMENTSERVICE - Payment Processing (gRPC, mock implementation)
   # ============================================================================
   paymentservice:
-    container_name: paymentservice-${INSTANCE_NAME:-default}
+    container_name: paymentservice-${TJOB_NAME:-default}
     build:
       context: ./src/paymentservice
       dockerfile: Dockerfile
@@ -153,7 +153,7 @@ services:
       - PORT=50051
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -163,7 +163,7 @@ services:
   # SHIPPINGSERVICE - Shipping Quotes & Fulfillment (gRPC, mock)
   # ============================================================================
   shippingservice:
-    container_name: shippingservice-${INSTANCE_NAME:-default}
+    container_name: shippingservice-${TJOB_NAME:-default}
     build:
       context: ./src/shippingservice
       dockerfile: Dockerfile
@@ -174,7 +174,7 @@ services:
       - PORT=50051
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -184,7 +184,7 @@ services:
   # EMAILSERVICE - Email Notifications (gRPC, mock)
   # ============================================================================
   emailservice:
-    container_name: emailservice-${INSTANCE_NAME:-default}
+    container_name: emailservice-${TJOB_NAME:-default}
     build:
       context: ./src/emailservice
       dockerfile: Dockerfile
@@ -195,7 +195,7 @@ services:
       - PORT=8080
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -205,7 +205,7 @@ services:
   # CHECKOUTSERVICE - Checkout Orchestration (gRPC)
   # ============================================================================
   checkoutservice:
-    container_name: checkoutservice-${INSTANCE_NAME:-default}
+    container_name: checkoutservice-${TJOB_NAME:-default}
     build:
       context: ./src/checkoutservice
       dockerfile: Dockerfile
@@ -221,14 +221,14 @@ services:
       - "5050"
     environment:
       - PORT=5050
-      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${INSTANCE_NAME:-default}:3550
-      - SHIPPING_SERVICE_ADDR=shippingservice-${INSTANCE_NAME:-default}:50051
-      - PAYMENT_SERVICE_ADDR=paymentservice-${INSTANCE_NAME:-default}:50051
-      - EMAIL_SERVICE_ADDR=emailservice-${INSTANCE_NAME:-default}:8080
-      - CURRENCY_SERVICE_ADDR=currencyservice-${INSTANCE_NAME:-default}:7000
-      - CART_SERVICE_ADDR=cartservice-${INSTANCE_NAME:-default}:7070
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${TJOB_NAME:-default}:3550
+      - SHIPPING_SERVICE_ADDR=shippingservice-${TJOB_NAME:-default}:50051
+      - PAYMENT_SERVICE_ADDR=paymentservice-${TJOB_NAME:-default}:50051
+      - EMAIL_SERVICE_ADDR=emailservice-${TJOB_NAME:-default}:8080
+      - CURRENCY_SERVICE_ADDR=currencyservice-${TJOB_NAME:-default}:7000
+      - CART_SERVICE_ADDR=cartservice-${TJOB_NAME:-default}:7070
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -238,7 +238,7 @@ services:
   # RECOMMENDATIONSERVICE - Product Recommendations (gRPC, Python)
   # ============================================================================
   recommendationservice:
-    container_name: recommendationservice-${INSTANCE_NAME:-default}
+    container_name: recommendationservice-${TJOB_NAME:-default}
     build:
       context: ./src/recommendationservice
       dockerfile: Dockerfile
@@ -249,10 +249,10 @@ services:
       - "8080"
     environment:
       - PORT=8080
-      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${INSTANCE_NAME:-default}:3550
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${TJOB_NAME:-default}:3550
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -262,7 +262,7 @@ services:
   # ADSERVICE - Advertisement Service (gRPC, Java)
   # ============================================================================
   adservice:
-    container_name: adservice-${INSTANCE_NAME:-default}
+    container_name: adservice-${TJOB_NAME:-default}
     build:
       context: ./src/adservice
       dockerfile: Dockerfile
@@ -272,7 +272,7 @@ services:
     environment:
       - PORT=9555
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     ulimits:
       nofile:
         soft: 65536
@@ -282,7 +282,7 @@ services:
   # LOADGENERATOR - Traffic Simulation (Optional)
   # ============================================================================
   loadgenerator:
-    container_name: loadgenerator-${INSTANCE_NAME:-default}
+    container_name: loadgenerator-${TJOB_NAME:-default}
     build:
       context: ./src/loadgenerator
       dockerfile: Dockerfile
@@ -290,11 +290,11 @@ services:
     depends_on:
       - frontend
     environment:
-      - FRONTEND_ADDR=frontend-${INSTANCE_NAME:-default}:8080
+      - FRONTEND_ADDR=frontend-${TJOB_NAME:-default}:8080
       - USERS=10
       - RATE=1
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     profiles:
       - load-testing
     ulimits:
@@ -307,7 +307,7 @@ services:
   # Requires GCP setup: AlloyDB, Secret Manager, Generative AI API
   # ============================================================================
   shoppingassistantservice:
-    container_name: shoppingassistantservice-${INSTANCE_NAME:-default}
+    container_name: shoppingassistantservice-${TJOB_NAME:-default}
     build:
       context: ./src/shoppingassistantservice
       dockerfile: Dockerfile
@@ -325,7 +325,7 @@ services:
       - ALLOYDB_SECRET_NAME=${ALLOYDB_SECRET_NAME:-}
       - GOOGLE_APPLICATION_CREDENTIALS=/var/secrets/google/key.json
     networks:
-      - microservices-${INSTANCE_NAME:-default}
+      - microservices-${TJOB_NAME:-default}
     profiles:
       - gcp
     volumes:
@@ -336,8 +336,8 @@ services:
         hard: 65536
 
 networks:
-  microservices-${INSTANCE_NAME:-default}:
+  microservices-${TJOB_NAME:-default}:
     driver: bridge
 
 volumes:
-  redis-data-${INSTANCE_NAME:-default}:
+  redis-data-${TJOB_NAME:-default}:

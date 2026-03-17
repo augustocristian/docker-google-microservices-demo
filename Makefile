@@ -63,11 +63,11 @@ ps: ps-dev
 
 build:
 	@echo "Building images for dev instance..."
-	INSTANCE_NAME=dev docker-compose build
+	TJOB_NAME=dev docker-compose build
 
 clean: down-dev
 	@echo "Removing dev instance data..."
-	INSTANCE_NAME=dev docker-compose down -v
+	TJOB_NAME=dev docker-compose down -v
 
 # ============================================================================
 # DEV INSTANCE
@@ -75,21 +75,21 @@ clean: down-dev
 
 up-dev:
 	@echo "↳ Starting dev instance on port 8080..."
-	INSTANCE_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
+	TJOB_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
 	@echo "✓ Dev instance started"
 	@echo "  Access: http://localhost:8080"
 
 down-dev:
 	@echo "↳ Stopping dev instance..."
-	INSTANCE_NAME=dev docker-compose down
+	TJOB_NAME=dev docker-compose down
 
 logs-dev:
 	@echo "↳ Streaming dev instance logs (Ctrl+C to exit)..."
-	INSTANCE_NAME=dev docker-compose logs -f
+	TJOB_NAME=dev docker-compose logs -f
 
 ps-dev:
 	@echo "↳ Dev instance containers:"
-	INSTANCE_NAME=dev docker-compose ps
+	TJOB_NAME=dev docker-compose ps
 
 # ============================================================================
 # TEST INSTANCE
@@ -97,21 +97,21 @@ ps-dev:
 
 up-test:
 	@echo "↳ Starting test instance on port 8081..."
-	INSTANCE_NAME=test FRONTEND_PORT=8081 docker-compose up -d
+	TJOB_NAME=test FRONTEND_PORT=8081 docker-compose up -d
 	@echo "✓ Test instance started"
 	@echo "  Access: http://localhost:8081"
 
 down-test:
 	@echo "↳ Stopping test instance..."
-	INSTANCE_NAME=test docker-compose down
+	TJOB_NAME=test docker-compose down
 
 logs-test:
 	@echo "↳ Streaming test instance logs (Ctrl+C to exit)..."
-	INSTANCE_NAME=test docker-compose logs -f
+	TJOB_NAME=test docker-compose logs -f
 
 ps-test:
 	@echo "↳ Test instance containers:"
-	INSTANCE_NAME=test docker-compose ps
+	TJOB_NAME=test docker-compose ps
 
 # ============================================================================
 # STAGING INSTANCE
@@ -119,21 +119,21 @@ ps-test:
 
 up-staging:
 	@echo "↳ Starting staging instance on port 8082..."
-	INSTANCE_NAME=staging FRONTEND_PORT=8082 docker-compose up -d
+	TJOB_NAME=staging FRONTEND_PORT=8082 docker-compose up -d
 	@echo "✓ Staging instance started"
 	@echo "  Access: http://localhost:8082"
 
 down-staging:
 	@echo "↳ Stopping staging instance..."
-	INSTANCE_NAME=staging docker-compose down
+	TJOB_NAME=staging docker-compose down
 
 logs-staging:
 	@echo "↳ Streaming staging instance logs (Ctrl+C to exit)..."
-	INSTANCE_NAME=staging docker-compose logs -f
+	TJOB_NAME=staging docker-compose logs -f
 
 ps-staging:
 	@echo "↳ Staging instance containers:"
-	INSTANCE_NAME=staging docker-compose ps
+	TJOB_NAME=staging docker-compose ps
 
 # ============================================================================
 # MULTI-INSTANCE MANAGEMENT
@@ -163,9 +163,9 @@ clean-all:
 	@echo "↳ Cleaning all instances and removing data..."
 	@read -p "Are you sure? (y/N) " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
-		INSTANCE_NAME=dev docker-compose down -v; \
-		INSTANCE_NAME=test docker-compose down -v; \
-		INSTANCE_NAME=staging docker-compose down -v; \
+		TJOB_NAME=dev docker-compose down -v; \
+		TJOB_NAME=test docker-compose down -v; \
+		TJOB_NAME=staging docker-compose down -v; \
 		docker volume ls -q | grep redis-data | xargs docker volume rm 2>/dev/null || true; \
 		echo "✓ All instances and data cleaned"; \
 	else \
@@ -193,13 +193,13 @@ health:
 	@echo "↳ Checking service health..."
 	@echo ""
 	@echo "Dev instance:"
-	@INSTANCE_NAME=dev docker-compose ps --format "table {{.Service}}\t{{.Status}}" || echo "Not running"
+	@TJOB_NAME=dev docker-compose ps --format "table {{.Service}}\t{{.Status}}" || echo "Not running"
 	@echo ""
 	@echo "Test instance:"
-	@INSTANCE_NAME=test docker-compose ps --format "table {{.Service}}\t{{.Status}}" || echo "Not running"
+	@TJOB_NAME=test docker-compose ps --format "table {{.Service}}\t{{.Status}}" || echo "Not running"
 	@echo ""
 	@echo "Staging instance:"
-	@INSTANCE_NAME=staging docker-compose ps --format "table {{.Service}}\t{{.Status}}" || echo "Not running"
+	@TJOB_NAME=staging docker-compose ps --format "table {{.Service}}\t{{.Status}}" || echo "Not running"
 	@echo ""
 
 # ============================================================================
@@ -208,14 +208,14 @@ health:
 
 build-all:
 	@echo "↳ Building all service images (fresh build)..."
-	INSTANCE_NAME=dev docker-compose build --no-cache
+	TJOB_NAME=dev docker-compose build --no-cache
 	@echo "✓ Build complete"
 
 build-clean: down-dev
 	@echo "↳ Removing old images..."
 	docker-compose down -v
 	@echo "↳ Building fresh images..."
-	INSTANCE_NAME=dev docker-compose build --no-cache
+	TJOB_NAME=dev docker-compose build --no-cache
 	@echo "✓ Fresh build complete"
 
 # ============================================================================

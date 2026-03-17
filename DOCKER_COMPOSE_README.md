@@ -110,9 +110,9 @@ Plus:
 ### Instance Isolation
 
 Each instance gets its own:
-- **Network** - `microservices-${INSTANCE_NAME}`
-- **Containers** - `servicename-${INSTANCE_NAME}`
-- **Volumes** - `redis-data-${INSTANCE_NAME}`
+- **Network** - `microservices-${TJOB_NAME}`
+- **Containers** - `servicename-${TJOB_NAME}`
+- **Volumes** - `redis-data-${TJOB_NAME}`
 
 This allows true parallel execution without port conflicts or network interference.
 
@@ -148,22 +148,22 @@ This allows true parallel execution without port conflicts or network interferen
 ### Example 1: Single Instance
 
 ```bash
-INSTANCE_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
+TJOB_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
 # Access: http://localhost:8080
-INSTANCE_NAME=dev docker-compose down
+TJOB_NAME=dev docker-compose down
 ```
 
 ### Example 2: Multiple Instances
 
 ```bash
 # Terminal 1
-INSTANCE_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
+TJOB_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
 
 # Terminal 2  
-INSTANCE_NAME=test FRONTEND_PORT=8081 docker-compose up -d
+TJOB_NAME=test FRONTEND_PORT=8081 docker-compose up -d
 
 # Terminal 3
-INSTANCE_NAME=staging FRONTEND_PORT=8082 docker-compose up -d
+TJOB_NAME=staging FRONTEND_PORT=8082 docker-compose up -d
 
 # All run independently without interference
 ```
@@ -222,7 +222,7 @@ Create a `.env` file (copy from `.env.example`):
 
 ```bash
 # Instance identifier (used in container/network names)
-INSTANCE_NAME=dev
+TJOB_NAME=dev
 
 # External port for frontend HTTP interface
 FRONTEND_PORT=8080
@@ -237,10 +237,10 @@ GCP_KEY_PATH=./gcp-key.json
 
 ```bash
 # Create environment-specific files
-echo "INSTANCE_NAME=dev" > .env.dev
+echo "TJOB_NAME=dev" > .env.dev
 echo "FRONTEND_PORT=8080" >> .env.dev
 
-echo "INSTANCE_NAME=test" > .env.test
+echo "TJOB_NAME=test" > .env.test
 echo "FRONTEND_PORT=8081" >> .env.test
 
 # Run with specific environment
@@ -288,7 +288,7 @@ Stage production-like configuration before deployment
 
 ```bash
 # Start
-$env:INSTANCE_NAME = 'dev'
+$env:TJOB_NAME = 'dev'
 $env:FRONTEND_PORT = 8080
 docker-compose up -d
 
@@ -303,7 +303,7 @@ Start-Process http://localhost:8080
 
 ```bash
 # Run in separate terminal
-$env:INSTANCE_NAME = 'dev'
+$env:TJOB_NAME = 'dev'
 docker-compose logs -f frontend
 
 # Stop with Ctrl+C
@@ -313,7 +313,7 @@ docker-compose logs -f frontend
 
 ```bash
 # Stop containers
-$env:INSTANCE_NAME = 'dev'
+$env:TJOB_NAME = 'dev'
 docker-compose down
 
 # Or stop and remove data
@@ -327,7 +327,7 @@ docker-compose down -v
 ### Port Already in Use
 ```bash
 # Use different port
-$env:INSTANCE_NAME = 'dev'
+$env:TJOB_NAME = 'dev'
 $env:FRONTEND_PORT = 9080
 docker-compose up -d
 ```
@@ -335,7 +335,7 @@ docker-compose up -d
 ### Services Won't Start
 ```bash
 # Check logs
-$env:INSTANCE_NAME = 'dev'
+$env:TJOB_NAME = 'dev'
 docker-compose logs
 
 # Try rebuild

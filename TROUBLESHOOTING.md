@@ -24,7 +24,7 @@ lsof -i :8080
 taskkill /PID <PID> /F
 
 # Or use a different port
-INSTANCE_NAME=dev FRONTEND_PORT=9080 docker-compose up -d
+TJOB_NAME=dev FRONTEND_PORT=9080 docker-compose up -d
 ```
 
 **Prevention:**
@@ -51,7 +51,7 @@ Error response from daemon: network microservices-dev already exists
 docker network rm microservices-dev
 
 # Then restart
-INSTANCE_NAME=dev docker-compose up -d
+TJOB_NAME=dev docker-compose up -d
 ```
 
 ---
@@ -115,10 +115,10 @@ docker stop frontend-dev
 docker rm frontend-dev
 
 # Or use different instance name
-INSTANCE_NAME=dev-new docker-compose up -d
+TJOB_NAME=dev-new docker-compose up -d
 ```
 
-**Prevention:** Always use unique `INSTANCE_NAME` values
+**Prevention:** Always use unique `TJOB_NAME` values
 
 ---
 
@@ -137,7 +137,7 @@ ERROR: failed to build image for service frontend
 docker ps
 
 # Try rebuild with more verbosity
-$env:INSTANCE_NAME = 'dev'
+$env:TJOB_NAME = 'dev'
 docker-compose build --verbose
 
 # Or rebuild without cache
@@ -532,15 +532,15 @@ docker-compose build
    docker-compose logs frontend
    ```
 
-2. **Verify configuration** - Make sure INSTANCE_NAME is set correctly
+2. **Verify configuration** - Make sure TJOB_NAME is set correctly
    ```bash
-   echo $INSTANCE_NAME
+   echo $TJOB_NAME
    docker-compose config | head -20
    ```
 
 3. **Test connectivity** - Can services reach each other?
    ```bash
-   docker-compose exec frontend ping cartservice-${INSTANCE_NAME}
+   docker-compose exec frontend ping cartservice-${TJOB_NAME}
    ```
 
 4. **Review docker-compose.yml** - Check service names include instance variable

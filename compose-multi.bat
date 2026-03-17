@@ -36,21 +36,21 @@ goto %ACTION%
             if !i! equ 1 (
                 set "instance1=%%x"
                 echo [^>] Instance 1: !instance1! on port 8080
-                set INSTANCE_NAME=!instance1!
+                set TJOB_NAME=!instance1!
                 set FRONTEND_PORT=8080
                 call :run_compose up
             )
             if !i! equ 2 (
                 set "instance2=%%x"
                 echo [^>] Instance 2: !instance2! on port 8081
-                set INSTANCE_NAME=!instance2!
+                set TJOB_NAME=!instance2!
                 set FRONTEND_PORT=8081
                 call :run_compose up
             )
             if !i! equ 3 (
                 set "instance3=%%x"
                 echo [^>] Instance 3: !instance3! on port 8082
-                set INSTANCE_NAME=!instance3!
+                set TJOB_NAME=!instance3!
                 set FRONTEND_PORT=8082
                 call :run_compose up
             )
@@ -72,7 +72,7 @@ goto %ACTION%
     echo [^>] Stopping all instances...
     for %%x in (dev test staging) do (
         echo [^>] Stopping %%x
-        set INSTANCE_NAME=%%x
+        set TJOB_NAME=%%x
         call :run_compose down
     )
     echo [V] All instances stopped
@@ -100,7 +100,7 @@ goto %ACTION%
     echo.
     echo [^>] Showing logs for instance: %INSTANCE%
     echo.
-    set INSTANCE_NAME=%INSTANCE%
+    set TJOB_NAME=%INSTANCE%
     call :run_compose logs
     goto end
 
@@ -120,7 +120,7 @@ goto %ACTION%
     echo [^>] Cleaning all instances...
     for %%x in (dev test staging) do (
         echo [^>] Cleaning %%x
-        set INSTANCE_NAME=%%x
+        set TJOB_NAME=%%x
         call :run_compose_clean
     )
     

@@ -1,6 +1,6 @@
 # Docker Compose Deployment Guide
 
-This Docker Compose configuration enables deployment of the Google Microservices Demo system with support for running **multiple instances in parallel** using the `INSTANCE_NAME` environment variable.
+This Docker Compose configuration enables deployment of the Google Microservices Demo system with support for running **multiple instances in parallel** using the `TJOB_NAME` environment variable.
 
 ## Architecture
 
@@ -91,13 +91,13 @@ Each instance gets its own network and containers with unique names:
 
 ```bash
 # Instance 1 - Development
-INSTANCE_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
+TJOB_NAME=dev FRONTEND_PORT=8080 docker-compose up -d
 
 # Instance 2 - Testing  
-INSTANCE_NAME=test FRONTEND_PORT=8081 docker-compose up -d
+TJOB_NAME=test FRONTEND_PORT=8081 docker-compose up -d
 
 # Instance 3 - Staging
-INSTANCE_NAME=staging FRONTEND_PORT=8082 docker-compose up -d
+TJOB_NAME=staging FRONTEND_PORT=8082 docker-compose up -d
 
 # All instances run independently:
 # - dev:      http://localhost:8080
@@ -111,11 +111,11 @@ Create environment-specific `.env` files:
 
 ```bash
 # .env.dev
-INSTANCE_NAME=dev
+TJOB_NAME=dev
 FRONTEND_PORT=8080
 
 # .env.test
-INSTANCE_NAME=test
+TJOB_NAME=test
 FRONTEND_PORT=8081
 
 # Run with specific .env
@@ -224,8 +224,8 @@ docker-compose -p microservices-test down
 docker-compose -p microservices-staging down
 
 # Or use instance name in commands
-INSTANCE_NAME=dev docker-compose down
-INSTANCE_NAME=test docker-compose down
+TJOB_NAME=dev docker-compose down
+TJOB_NAME=test docker-compose down
 ```
 
 ## Environment Variables
@@ -234,7 +234,7 @@ INSTANCE_NAME=test docker-compose down
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `INSTANCE_NAME` | `default` | Unique identifier for containers & networks |
+| `TJOB_NAME` | `default` | Unique identifier for containers & networks |
 | `FRONTEND_PORT` | `8080` | External port for frontend HTTP |
 
 ### Optional: GCP/AI Assistant
@@ -257,14 +257,14 @@ Services communicate via container hostnames:
 
 ```
 # From frontend to cartservice
-cartservice-${INSTANCE_NAME}:7070
+cartservice-${TJOB_NAME}:7070
 
 # From checkoutservice to paymentservice
-paymentservice-${INSTANCE_NAME}:50051
+paymentservice-${TJOB_NAME}:50051
 ```
 
 ### Isolated Networks per Instance
-Each instance has its own network (`microservices-${INSTANCE_NAME}`), preventing cross-instance communication and allowing true parallel deployment.
+Each instance has its own network (`microservices-${TJOB_NAME}`), preventing cross-instance communication and allowing true parallel deployment.
 
 ### Port Mapping
 Only frontend exposes a port to host. All other services communicate internally:
@@ -431,9 +431,9 @@ docker-compose down -v
 docker-compose down -v --rmi all
 
 # For multiple instances
-INSTANCE_NAME=dev docker-compose down -v
-INSTANCE_NAME=test docker-compose down -v
-INSTANCE_NAME=staging docker-compose down -v
+TJOB_NAME=dev docker-compose down -v
+TJOB_NAME=test docker-compose down -v
+TJOB_NAME=staging docker-compose down -v
 ```
 
 ## Production Recommendations

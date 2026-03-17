@@ -15,11 +15,11 @@ services:
     image: redis:7-alpine
     init: true
     volumes:
-      - redis-data-${TJOB_NAME:-default}:/data
+      - redis-data:/data
     ports:
       - "6379"
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -65,9 +65,10 @@ services:
       - SHIPPING_SERVICE_ADDR=shippingservice-${TJOB_NAME:-default}:50051
       - CHECKOUT_SERVICE_ADDR=checkoutservice-${TJOB_NAME:-default}:5050
       - AD_SERVICE_ADDR=adservice-${TJOB_NAME:-default}:9555
+      - SHOPPING_ASSISTANT_SERVICE_ADDR=shoppingassistantservice-${TJOB_NAME:-default}:8080
       - ENABLE_PROFILER=0
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -79,7 +80,7 @@ services:
   cartservice:
     container_name: cartservice-${TJOB_NAME:-default}
     build:
-      context: ./src/cartservice
+      context: ./src/cartservice/src
       dockerfile: Dockerfile
     init: true
     depends_on:
@@ -90,7 +91,7 @@ services:
     environment:
       - REDIS_ADDR=redis-cart-${TJOB_NAME:-default}:6379
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -111,7 +112,7 @@ services:
       - PORT=3550
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -132,7 +133,7 @@ services:
       - PORT=7000
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -153,7 +154,7 @@ services:
       - PORT=50051
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -174,7 +175,7 @@ services:
       - PORT=50051
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -195,7 +196,7 @@ services:
       - PORT=8080
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -228,7 +229,7 @@ services:
       - CURRENCY_SERVICE_ADDR=currencyservice-${TJOB_NAME:-default}:7000
       - CART_SERVICE_ADDR=cartservice-${TJOB_NAME:-default}:7070
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -252,7 +253,7 @@ services:
       - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice-${TJOB_NAME:-default}:3550
       - DISABLE_PROFILER=1
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -272,7 +273,7 @@ services:
     environment:
       - PORT=9555
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     ulimits:
       nofile:
         soft: 65536
@@ -294,7 +295,7 @@ services:
       - USERS=10
       - RATE=1
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     profiles:
       - load-testing
     ulimits:
@@ -325,7 +326,7 @@ services:
       - ALLOYDB_SECRET_NAME=${ALLOYDB_SECRET_NAME:-}
       - GOOGLE_APPLICATION_CREDENTIALS=/var/secrets/google/key.json
     networks:
-      - microservices-${TJOB_NAME:-default}
+      - jenkins_network
     profiles:
       - gcp
     volumes:
@@ -336,8 +337,8 @@ services:
         hard: 65536
 
 networks:
-  microservices-${TJOB_NAME:-default}:
-    driver: bridge
+  jenkins_network:
+    external: true
 
 volumes:
-  redis-data-${TJOB_NAME:-default}:
+  redis-data:
